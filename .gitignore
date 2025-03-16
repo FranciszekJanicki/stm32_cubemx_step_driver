@@ -92,3 +92,4 @@ devcontainer-stm32-cubemx-invertedsway.bin
 CMakeFiles
 CMakeCache.txt
 
+app/utility
