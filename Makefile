@@ -49,4 +49,4 @@ remove-utility:
 
 .PHONY: all
 all:
-	make clang-format && make build && make flash && make serial
+	make build && make flash && make serial

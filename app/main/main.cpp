@@ -11,7 +11,8 @@
 namespace {
 
     volatile auto interrupt = false;
-};
+
+}; // namespace
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
@@ -26,7 +27,6 @@ int main()
     SystemClock_Config();
 
     MX_USART2_UART_Init();
-    MX_TIM1_Init();
     MX_TIM3_Init();
     MX_GPIO_Init();
 
@@ -46,7 +46,7 @@ int main()
     auto constexpr SAMPLING_TIME_S = 0.1F;
     auto constexpr DEGREES_PER_STEP = 1.8F;
 
-    auto pwm_device = PWMDevice{&htim1, TIM_CHANNEL_4, 65535U, 3.3F};
+    auto pwm_device = PWMDevice{&htim3, TIM_CHANNEL_4, 65535U, 3.3F};
 
     auto a4988 = A4988::A4988{std::move(pwm_device), MS1, MS2, MS3, RESET, SLEEP, DIR, ENABLE};
 
@@ -55,13 +55,12 @@ int main()
     auto step_driver =
         StepDriver::StepDriver{.degrees_per_step = DEGREES_PER_STEP, .a4988 = std::move(a4988), .pid = pid};
 
-    HAL_TIM_Base_Start_IT(&htim3);
+    // HAL_TIM_Base_Start_IT(&htim2);
 
     while (true) {
         if (interrupt) {
             step_driver(INPUT_SPEED_DPS, SAMPLING_TIME_S);
 
-            HAL_TIM_Base_Start_IT(&htim3);
             interrupt = false;
         }
     }
