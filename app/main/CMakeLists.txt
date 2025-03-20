@@ -12,7 +12,7 @@ target_link_libraries(app PRIVATE
     stm32cubemx
     a4988
     utility
-    step_driver
+    step_motor
 )
 
 target_compile_options(app PUBLIC

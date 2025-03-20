@@ -25,7 +25,7 @@ namespace A4988 {
 
         ~A4988() noexcept;
 
-        void set_frequency(std::uint32_t const frequency) noexcept;
+        void set_frequency(std::uint16_t const frequency) noexcept;
 
         void set_microstep(Microstep const microstep) const noexcept;
         void set_full_microstep() const noexcept;
@@ -41,7 +41,6 @@ namespace A4988 {
         void set_reset(bool const reset = true) const noexcept;
         void set_enable(bool const enable = true) const noexcept;
         void set_sleep(bool const sleep = true) const noexcept;
-        void set_step(bool const step = true) const noexcept;
 
     private:
         void initialize() noexcept;
@@ -56,6 +55,8 @@ namespace A4988 {
         GPIO pin_sleep_{};
         GPIO pin_dir_{};
         GPIO pin_enable_{};
+
+        std::uint16_t pulse_width_raw_{};
 
         bool initialized_{false};
     };

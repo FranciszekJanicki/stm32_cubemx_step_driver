@@ -28,9 +28,20 @@ namespace A4988 {
         this->deinitialize();
     }
 
-    void A4988::set_frequency(std::uint32_t const frequency) noexcept
+    void A4988::set_frequency(std::uint16_t const frequency) noexcept
     {
-        this->pwm_device_.set_frequency(frequency);
+        if (this->initialized_) {
+            this->pwm_device_.set_frequency(frequency);
+            auto const counter_period = this->pwm_device_.get_counter_period();
+            auto const pulse_width_raw = static_cast<std::uint16_t>(counter_period * PULSE_WIDTH_RATIO);
+            this->pwm_device_.set_compare_raw(pulse_width_raw);
+
+            printf("freq: %d, raw: %d, cp: %d, duty: %.2f%%\n\r",
+                   frequency,
+                   pulse_width_raw,
+                   counter_period,
+                   100.0F * static_cast<float>(pulse_width_raw) / static_cast<float>(counter_period));
+        }
     }
 
     void A4988::set_microstep(Microstep const microstep) const noexcept
@@ -144,19 +155,11 @@ namespace A4988 {
         gpio_write_pin(this->pin_sleep_, sleep ? GPIO_PIN_RESET : GPIO_PIN_SET);
     }
 
-    void A4988::set_step(bool const step) const noexcept
-    {
-        if (this->initialized_) {
-            this->pwm_device_.set_compare_raw(step ? PULSE_WIDTH_RAW : 0U);
-        }
-    }
-
     void A4988::initialize() noexcept
     {
         this->set_reset(false);
         this->set_enable(true);
         this->set_sleep(false);
-        this->set_step(false);
         this->initialized_ = true;
     }
 
@@ -165,7 +168,6 @@ namespace A4988 {
         this->set_reset(true);
         this->set_enable(false);
         this->set_sleep(true);
-        this->set_step(false);
         this->initialized_ = false;
     }
 
