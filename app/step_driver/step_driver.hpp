@@ -8,6 +8,9 @@ namespace StepDriver {
 
     using namespace A4988;
     using namespace Utility;
+    using A4988 = ::A4988::A4988;
+
+    Microstep speed_to_microstep(float const speed, float const step_change) noexcept;
 
     Direction speed_to_direction(float const speed) noexcept;
 
@@ -21,32 +24,37 @@ namespace StepDriver {
                               float const max_acceleration) noexcept;
 
     struct StepDriver {
-        void increase_step_count() noexcept;
+    public:
+        void update_step_count() noexcept;
 
-        void set_position(float const position, float const step_change, float const sampling_time) noexcept;
-        void set_speed(float const speed, float const step_change, float const sampling_time) noexcept;
-        void set_acceleration(float const accel, float const step_change, float const sampling_time) noexcept;
+        void set_position(float const position, float const sampling_time) noexcept;
+        void set_speed(float const speed, float const sampling_time) noexcept;
+        void set_acceleration(float const acceleration, float const sampling_time) noexcept;
 
-        float get_position(float const step_change, float const sampling_time) noexcept;
-        float get_speed(float const step_change, float const sampling_time) noexcept;
-        float get_acceleration(float const step_change, float const sampling_time) noexcept;
+        A4988 driver{};
+        PID<float> regulator{};
+        std::uint16_t steps_per_360{};
 
-        A4988::A4988 driver{};
-        Utility::PID<float> regulator{};
+        Microstep microstep{};
+        Direction direction{};
+        std::uint16_t frequency{};
 
-        std::uint64_t step_count{};
-
-        float max_position{};
-        float max_speed{};
-        float max_acceleration{};
+        std::int64_t step_count{};
 
         float prev_position{};
         float prev_speed{};
         float prev_acceleration{};
 
-        float prev_error_position{};
-        float prev_error_speed{};
-        float prev_error_acceleration{};
+        float step_change() const noexcept;
+
+        void set_control_speed(float const control_speed) noexcept;
+        void set_microstep(Microstep const microstep) noexcept;
+        void set_direction(Direction const direction) noexcept;
+        void set_frequency(std::uint16_t const frequency) noexcept;
+
+        float get_position(float const sampling_time) noexcept;
+        float get_speed(float const sampling_time) noexcept;
+        float get_acceleration(float const sampling_time) noexcept;
     };
 
 }; // namespace StepDriver

@@ -34,7 +34,7 @@ namespace A4988 {
             this->pwm_device_.set_frequency(frequency);
 
             auto const counter_period = this->pwm_device_.get_counter_period();
-            auto const pulse_width_raw = counter_period * PULSE_WIDTH_RATIO;
+            auto const pulse_width_raw = static_cast<std::uint16_t>(counter_period * PULSE_WIDTH_RATIO);
             this->pwm_device_.set_compare_raw(pulse_width_raw);
 
             printf("freq: %d, raw: %d, cp: %d, duty: %.2f%%\n\r",
@@ -107,8 +107,8 @@ namespace A4988 {
     void A4988::set_sixteenth_microstep() const noexcept
     {
         if (this->initialized_) {
-            gpio_write_pin(this->pin_ms1_, GPIO_PIN_RESET);
-            gpio_write_pin(this->pin_ms2_, GPIO_PIN_RESET);
+            gpio_write_pin(this->pin_ms1_, GPIO_PIN_SET);
+            gpio_write_pin(this->pin_ms2_, GPIO_PIN_SET);
             gpio_write_pin(this->pin_ms3_, GPIO_PIN_SET);
         }
     }

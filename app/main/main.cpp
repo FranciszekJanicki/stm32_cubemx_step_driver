@@ -41,16 +41,15 @@ int main()
 
     using namespace StepDriver;
 
-    auto constexpr MS1 = GPIO::PA0;
-    auto constexpr MS2 = GPIO::PA1;
-    auto constexpr MS3 = GPIO::PA2;
+    auto constexpr MS1 = GPIO::PB4;
+    auto constexpr MS2 = GPIO::PB5;
+    auto constexpr MS3 = GPIO::PB6;
     auto constexpr RESET = GPIO::PA3;
     auto constexpr SLEEP = GPIO::PA4;
-    auto constexpr DIR = GPIO::PA5;
+    auto constexpr DIR = GPIO::PB7;
     auto constexpr ENABLE = GPIO::PA6;
 
     auto constexpr SAMPLING_TIME = 1.0F;
-    auto constexpr STEP_CHANGE = 1.8F;
 
     using namespace StepDriver;
     using namespace Utility;
@@ -59,23 +58,28 @@ int main()
 
     auto a4988 = A4988::A4988{std::move(pwm_device), MS1, MS2, MS3, RESET, SLEEP, DIR, ENABLE};
 
-    auto pid = PID<float>{};
+    auto pid = PID<float>{.proportion_gain = 10.0F,
+                          .integral_gain = 0.0F,
+                          .derivative_gain = 0.0F,
+                          .time_constant = 0.0F,
+                          .control_gain = 0.0F,
+                          .saturation = 100.0F};
 
-    auto step_driver = StepDriver::StepDriver{.driver = std::move(a4988), .regulator = pid};
+    auto step_driver = StepDriver::StepDriver{.driver = std::move(a4988), .regulator = pid, .steps_per_360 = 200U};
 
     HAL_TIM_Base_Start_IT(&htim3);
     HAL_TIM_PWM_Start_IT(&htim4, TIM_CHANNEL_3);
 
     while (1) {
         if (tim3_period_elapsed) {
-            step_driver.set_speed(300.0F, STEP_CHANGE, SAMPLING_TIME);
+            step_driver.set_position(0.0F, SAMPLING_TIME);
 
             tim3_period_elapsed = false;
             HAL_TIM_Base_Start_IT(&htim3);
         }
 
         if (tim4_pwm_pulse_finished) {
-            step_driver.increase_step_count();
+            step_driver.update_step_count();
 
             tim4_pwm_pulse_finished = false;
             HAL_TIM_PWM_Start_IT(&htim4, TIM_CHANNEL_3);
