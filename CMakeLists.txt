@@ -24,7 +24,7 @@ add_subdirectory(cmake/stm32cubemx)
 add_subdirectory(app/main)
 add_subdirectory(app/utility)
 add_subdirectory(app/a4988)
-add_subdirectory(app/step_motor)
+add_subdirectory(app/step_driver)
 
 target_compile_options(stm32cubemx INTERFACE 
     -w

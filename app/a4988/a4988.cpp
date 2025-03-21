@@ -32,8 +32,9 @@ namespace A4988 {
     {
         if (this->initialized_) {
             this->pwm_device_.set_frequency(frequency);
+
             auto const counter_period = this->pwm_device_.get_counter_period();
-            auto const pulse_width_raw = static_cast<std::uint16_t>(counter_period * PULSE_WIDTH_RATIO);
+            auto const pulse_width_raw = counter_period * PULSE_WIDTH_RATIO;
             this->pwm_device_.set_compare_raw(pulse_width_raw);
 
             printf("freq: %d, raw: %d, cp: %d, duty: %.2f%%\n\r",

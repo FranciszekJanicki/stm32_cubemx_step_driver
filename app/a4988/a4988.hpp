@@ -42,7 +42,6 @@ namespace A4988 {
         void set_enable(bool const enable = true) const noexcept;
         void set_sleep(bool const sleep = true) const noexcept;
 
-    private:
         void initialize() noexcept;
         void deinitialize() noexcept;
 

@@ -40,6 +40,7 @@ namespace A4988 {
         }
     }
 
+    auto constexpr PULSE_WIDTH_US = 10U;
     auto constexpr PULSE_WIDTH_RATIO = 0.01F;
 
 } // namespace A4988
