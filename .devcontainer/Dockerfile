@@ -1,43 +1,46 @@
 FROM archlinux:base-devel
 
-ARG TOOLS_PATH=/opt/stm32-tools
+# Install base dependencies and necessary tools
+RUN pacman -Sy --noconfirm --needed \
+    base-devel \
+    arm-none-eabi-gcc \
+    arm-none-eabi-newlib \
+    curl \
+    unzip \
+    jre-openjdk \
+    qt5-base \
+    libusb \
+    usbutils \
+    cmake \
+    make \
+    git \
+    minicom \
+    stlink \
+    sudo \
+    && pacman -Scc --noconfirm
 
-RUN pacman -Sy --noconfirm base-devel curl unzip jre-openjdk libusb usbutils arm-none-eabi-gcc arm-none-eabi-gdb cmake ninja git minicom stlink && \
-    pacman -Scc --noconfirm && rm -rf /var/cache/pacman/pkg/*
+# Create a new user for building
+RUN useradd -m builder && echo "builder ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/builder
 
-RUN mkdir -p ${TOOLS_PATH}
+USER builder
 
-COPY STM32CubeMX-latest-linux.zip /tmp/
-COPY STM32CubeProgrammer-latest-linux.zip /tmp/
-COPY STM32CubeFinder-latest-linux.zip /tmp/
-COPY stlink-server_v2-0-1-0_linux_x86_64.zip /tmp/
+# Install yay for AUR support and build it
+RUN git clone https://aur.archlinux.org/yay-bin.git /tmp/yay-bin && \
+    cd /tmp/yay-bin && makepkg -si --noconfirm && \
+    rm -rf /tmp/yay-bin
 
-RUN echo "Unzipping STM32CubeMX..." && \
-    unzip /tmp/STM32CubeMX-latest-linux.zip -d ${TOOLS_PATH} && \
-    rm /tmp/STM32CubeMX-latest-linux.zip && \
-    chmod +x ${TOOLS_PATH}/STM32CubeMX/STM32CubeMX
+# Update yay and install STM32CubeMX and STM32CubeProgrammer
+RUN yay -Syu --noconfirm && \
+    yay -S --noconfirm --needed stm32cubemx 
 
-RUN echo "Unzipping STM32CubeProgrammer..." && \
-    unzip /tmp/STM32CubeProgrammer-latest-linux.zip -d ${TOOLS_PATH} && \
-    rm /tmp/STM32CubeProgrammer-latest-linux.zip && \
-    chmod +x ${TOOLS_PATH}/STM32CubeProgrammer/bin/STM32_Programmer_CLI
+# Switch to root for modifying USB rules
+USER root
 
-RUN echo "Unzipping STM32CubeFinder..." && \
-    unzip /tmp/STM32CubeFinder-latest-linux.zip -d ${TOOLS_PATH} && \
-    rm /tmp/STM32CubeFinder-latest-linux.zip && \
-    chmod +x ${TOOLS_PATH}/STM32CubeFinder/STM32CubeFinder
+# # Add udev rule for STM32 devices (ST-Link/STM32 programmers)
+# RUN echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="3748", MODE="0666", GROUP="plugdev"' > /etc/udev/rules.d/99-stlink.rules && \
+#     udevadm control --reload-rules && \
+#     udevadm trigger
 
-RUN echo "Unzipping ST-LINK server..." && \
-    unzip /tmp/stlink-server_v2-0-1-0_linux_x86_64.zip -d ${TOOLS_PATH} && \
-    rm /tmp/stlink-server_v2-0-1-0_linux_x86_64.zip && \
-    chmod +x ${TOOLS_PATH}/stlink-server/stlink-server
-
-RUN ln -s ${TOOLS_PATH}/STM32CubeMX/STM32CubeMX /usr/local/bin/STM32CubeMX && \
-    ln -s ${TOOLS_PATH}/STM32CubeProgrammer/bin/STM32_Programmer_CLI /usr/local/bin/STM32_Programmer_CLI && \
-    ln -s ${TOOLS_PATH}/STM32CubeFinder/STM32CubeFinder /usr/local/bin/STM32CubeFinder && \
-    ln -s ${TOOLS_PATH}/stlink-server/stlink-server /usr/local/bin/stlink-server
-
-RUN echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="3748", MODE="0666", GROUP="plugdev"' > /etc/udev/rules.d/99-stlink.rules && \
-    udevadm control --reload-rules && udevadm trigger
-
+# Switch to bash shell
 SHELL ["/bin/bash", "-c"]
+

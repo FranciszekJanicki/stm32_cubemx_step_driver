@@ -59,10 +59,19 @@ namespace StepDriver {
     void StepDriver::set_speed(float const speed, float const sampling_time) noexcept
     {
         auto const error_speed = speed - this->get_speed(sampling_time);
-        auto const control_speed = speed;
+        auto control_speed = speed;
         // this->regulator(error_speed, sampling_time);
 
-        this->set_control_speed(speed);
+        auto static stopped = false;
+
+        if (std::abs(control_speed) < MIN_SPEED) {
+            this->stop_pwm();
+        } else {
+            if (this->stopped) {
+                this->start_pwm();
+            }
+            this->set_control_speed(speed);
+        }
     }
 
     void StepDriver::set_acceleration(float const acceleration, float const sampling_time) noexcept
@@ -71,6 +80,18 @@ namespace StepDriver {
             Utility::integrate(acceleration, std::exchange(this->prev_acceleration, acceleration), sampling_time);
 
         this->set_speed(speed, sampling_time);
+    }
+
+    void StepDriver::start_pwm() noexcept
+    {
+        this->driver.pwm_device_.start_it();
+        this->stopped = false;
+    }
+
+    void StepDriver::stop_pwm() noexcept
+    {
+        this->driver.pwm_device_.stop_it();
+        this->stopped = true;
     }
 
     float StepDriver::step_change() const noexcept

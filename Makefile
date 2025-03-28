@@ -5,6 +5,15 @@ DRIVERS_DIR := ${PROJECT_DIR}/Drivers
 REQUIREMENTS_DIR := ${PROJECT_DIR}/requirements
 STM32CUBEMX_DIR := ${PROJECT_DIR}/cmake/stm32cubemx
 UTILITY_DIR := ${APP_DIR}/utility
+DOCKER_DIR := ${PROJECT_DIR}/.devcontainer
+
+.PHONY: docker-build
+docker-build:
+	docker build -t stm32 ${DOCKER_DIR}
+
+.PHONY: docker-run
+docker-run:
+	docker run -it --privileged --device=/dev/ttyUSB0 -v $(PWD):/workspace -w /workspace stm32
 
 .PHONY: build
 build: 
@@ -20,7 +29,7 @@ cmake:
 
 .PHONY: flash
 flash: 
-	STM32_Programmer_CLI -c port=swd -d ${BUILD_DIR}/app/main/app.elf -rst
+	stlink -c port=swd -d ${BUILD_DIR}/app/main/app.elf -rst
 
 .PHONY: serial
 serial:

@@ -23,6 +23,8 @@ namespace StepDriver {
                               float const max_speed,
                               float const max_acceleration) noexcept;
 
+    auto constexpr MIN_SPEED = 10.0F; // degrees per second
+
     struct StepDriver {
     public:
         void update_step_count() noexcept;
@@ -44,6 +46,12 @@ namespace StepDriver {
         float prev_position{};
         float prev_speed{};
         float prev_acceleration{};
+
+        bool stopped{};
+
+    private:
+        void start_pwm() noexcept;
+        void stop_pwm() noexcept;
 
         float step_change() const noexcept;
 

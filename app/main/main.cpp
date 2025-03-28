@@ -70,9 +70,11 @@ int main()
     HAL_TIM_Base_Start_IT(&htim3);
     HAL_TIM_PWM_Start_IT(&htim4, TIM_CHANNEL_3);
 
+    auto i = 0.0F;
+
     while (1) {
         if (tim3_period_elapsed) {
-            step_driver.set_position(0.0F, SAMPLING_TIME);
+            step_driver.set_speed(i += 3, SAMPLING_TIME);
 
             tim3_period_elapsed = false;
             HAL_TIM_Base_Start_IT(&htim3);
@@ -85,6 +87,4 @@ int main()
             HAL_TIM_PWM_Start_IT(&htim4, TIM_CHANNEL_3);
         }
     }
-
-    return 0;
 }
